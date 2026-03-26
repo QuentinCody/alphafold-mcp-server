@@ -6,7 +6,7 @@ interface SchemaEnv {
     ALPHAFOLD_DATA_DO?: unknown;
 }
 
-export function registerGetSchema(server: McpServer, env?: SchemaEnv) {
+export function registerGetSchema(server: McpServer, env?: SchemaEnv): void {
     const handler = createGetSchemaHandler("ALPHAFOLD_DATA_DO", "alphafolddb");
 
     server.registerTool(
