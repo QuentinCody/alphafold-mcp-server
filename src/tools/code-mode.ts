@@ -35,6 +35,8 @@ export function registerCodeMode(
     // Register the execute tool (V8 isolate via DynamicWorkerExecutor)
     const executeTool = createExecuteTool({
         prefix: "alphafolddb",
+        // Verifiable provenance: alphafolddb_execute results carry a _meta.citation.
+        source: { id: "alphafolddb", name: "AlphaFold Protein Structure Database", url: "https://alphafold.ebi.ac.uk", license: "CC BY 4.0" },
         catalog: alphafoldCatalog,
         apiFetch,
         doNamespace: env.ALPHAFOLD_DATA_DO,
