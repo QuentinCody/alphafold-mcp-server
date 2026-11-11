@@ -1,16 +1,15 @@
 import type { McpServer } from "@bio-mcp/shared/mcp";
 import { z } from "zod";
 import { createGetSchemaHandler } from "@bio-mcp/shared/staging/utils";
+import {alphafoldResponse, type AlphafoldDataEnv} from "../lib/tool-result";
 
-interface SchemaEnv {
-    ALPHAFOLD_DATA_DO?: unknown;
-}
+type SchemaEnv = AlphafoldDataEnv;
 
 export function registerGetSchema(server: McpServer, env?: SchemaEnv): void {
     const handler = createGetSchemaHandler("ALPHAFOLD_DATA_DO", "alphafolddb");
 
-    server.registerTool(
-        "alphafolddb_get_schema",
+    for (const name of ["alphafolddb_get_schema", "mcp_alphafolddb_get_schema"]) server.registerTool(
+        name,
         {
             title: "Get Staged AlphaFold DB Schema",
             description:
@@ -29,11 +28,11 @@ export function registerGetSchema(server: McpServer, env?: SchemaEnv): void {
         async (args, extra) => {
             const runtimeEnv =
                 env || (extra as { env?: SchemaEnv })?.env || {};
-            return handler(
+            return alphafoldResponse(() => handler(
                 args as Record<string, unknown>,
                 runtimeEnv as Record<string, unknown>,
                 (extra as Record<string, unknown>),
-            );
+            ), runtimeEnv, "alphafolddb_get_schema", extra);
         },
     );
 }

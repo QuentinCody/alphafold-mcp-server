@@ -1,16 +1,15 @@
 import type { McpServer } from "@bio-mcp/shared/mcp";
 import { z } from "zod";
 import { createQueryDataHandler } from "@bio-mcp/shared/staging/utils";
+import {alphafoldResponse, type AlphafoldDataEnv} from "../lib/tool-result";
 
-interface QueryEnv {
-    ALPHAFOLD_DATA_DO?: unknown;
-}
+type QueryEnv = AlphafoldDataEnv;
 
 export function registerQueryData(server: McpServer, env?: QueryEnv): void {
     const handler = createQueryDataHandler("ALPHAFOLD_DATA_DO", "alphafolddb");
 
-    server.registerTool(
-        "alphafolddb_query_data",
+    for (const name of ["alphafolddb_query_data", "mcp_alphafolddb_query_data"]) server.registerTool(
+        name,
         {
             title: "Query Staged AlphaFold DB Data",
             description:
@@ -37,10 +36,10 @@ export function registerQueryData(server: McpServer, env?: QueryEnv): void {
         async (args, extra) => {
             const runtimeEnv =
                 env || (extra as { env?: QueryEnv })?.env || {};
-            return handler(
+            return alphafoldResponse(() => handler(
                 args as Record<string, unknown>,
                 runtimeEnv as Record<string, unknown>,
-            );
+            ), runtimeEnv, "alphafolddb_query_data", extra);
         },
     );
 }

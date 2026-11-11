@@ -24,13 +24,18 @@ export function registerCodeMode(
     env: CodeModeEnv,
 ): void {
     const apiFetch = createAlphafoldApiFetch();
+    const registrar = {tool: (...args: unknown[]) => {
+        const [name, ...rest] = args;
+        const register = server.tool.bind(server) as (...values: unknown[]) => void;
+        register(name, ...rest); register(`mcp_${String(name)}`, ...rest);
+    }};
 
     // Register the search tool (in-process, no isolate)
     const searchTool = createSearchTool({
         prefix: "alphafolddb",
         catalog: alphafoldCatalog,
     });
-    searchTool.register(server as unknown as { tool: (...args: unknown[]) => void });
+    searchTool.register(registrar);
 
     // Register the execute tool (V8 isolate via DynamicWorkerExecutor)
     const executeTool = createExecuteTool({
@@ -39,8 +44,10 @@ export function registerCodeMode(
         source: { id: "alphafolddb", name: "AlphaFold Protein Structure Database", url: "https://alphafold.ebi.ac.uk", license: "CC BY 4.0" },
         catalog: alphafoldCatalog,
         apiFetch,
+        maxInlineBytes: 30 * 1024,
+        timeout: 60000,
         doNamespace: env.ALPHAFOLD_DATA_DO,
         loader: env.CODE_MODE_LOADER,
     });
-    executeTool.register(server as unknown as { tool: (...args: unknown[]) => void });
+    executeTool.register(registrar);
 }
